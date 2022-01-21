@@ -18,49 +18,59 @@ public:
 
     void setSingleRGB(int ledNumber, int r, int g, int b);
 
-private:
-    bool m_invertValues = true;
+    void setAllRGB(int r, int g, int b);
 
-    int m_ledPins[8][3] = {
-            {7,  6,  5},
-            {4,  3,  2},
-            {1,  0,  15},
-            {14, 13, 12},
-            {11, 10, 9},
-            {8,  23, 22},
-            {21, 20, 19},
-            {18, 17, 16}
+private:
+    bool _invertValues = true;
+
+    int _ledPins[8][3] = {
+            {5,  6,  7},
+            {2,  3,  4},
+            {15, 0,  1},
+            {12, 13, 14},
+            {9,  10, 11},
+            {22, 23, 8},
+            {19, 20, 21},
+            {16, 17, 18}
     };
 };
 
 void ShiftRGB::setup() {
+    Serial.begin(9600);
+
     pinMode(2, OUTPUT);
     pinMode(3, OUTPUT);
     pinMode(4, OUTPUT);
 
-    shiftRegisters.interrupt(ShiftRegisterPWM::UpdateFrequency::Medium);
+    shiftRegisters.interrupt(ShiftRegisterPWM::UpdateFrequency::Slow);
 }
 
 ShiftRGB::ShiftRGB(bool invertValues) {
-    m_invertValues = invertValues;
+    _invertValues = invertValues;
 }
 
 void ShiftRGB::setSingleRGB(int ledNumber, int r, int g, int b) {
     int currentR, currentG, currentB;
 
-    if (m_invertValues) {
-        currentR = 255 - r;
-        currentG = 255 - g;
-        currentB = 255 - b;
+    if (this->_invertValues) {
+        currentR = 255 - r % 256;
+        currentG = 255 - g % 256;
+        currentB = 255 - b % 256;
     } else {
-        currentR = r;
-        currentG = g;
-        currentB = b;
+        currentR = r % 256;
+        currentG = g % 256;
+        currentB = b % 256;
     }
 
-    shiftRegisters.set(m_ledPins[ledNumber][0], currentR);
-    shiftRegisters.set(m_ledPins[ledNumber][1], currentG);
-    shiftRegisters.set(m_ledPins[ledNumber][2], currentB);
+    shiftRegisters.set(this->_ledPins[ledNumber][0], currentR);
+    shiftRegisters.set(this->_ledPins[ledNumber][1], currentG);
+    shiftRegisters.set(this->_ledPins[ledNumber][2], currentB);
+}
+
+void ShiftRGB::setAllRGB(int r, int g, int b) {
+    for (int i = 0; i < 8; i++) {
+        this->setSingleRGB(i, r, g, b);
+    }
 }
 
 
